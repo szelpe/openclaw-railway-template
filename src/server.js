@@ -1105,6 +1105,8 @@ function validatePayload(payload) {
   const stringFields = [
     "telegramToken",
     "discordToken",
+    "discordGuildId",
+    "discordUserId",
     "slackBotToken",
     "slackAppToken",
     "authSecret",
@@ -1118,6 +1120,12 @@ function validatePayload(payload) {
   for (const field of stringFields) {
     if (payload[field] !== undefined && typeof payload[field] !== "string") {
       return `Invalid ${field}: must be a string`;
+    }
+  }
+  for (const field of ["discordGuildId", "discordUserId"]) {
+    const value = payload[field]?.trim();
+    if (value && !/^\d{15,25}$/.test(value)) {
+      return `Invalid ${field}: must be a numeric Discord ID`;
     }
   }
   return null;
@@ -1240,11 +1248,24 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
 
       if (payload.discordToken?.trim()) {
         await installPlugin("discord", "@openclaw/discord");
+        // Allowlist: only the listed server (and, if given, only the listed
+        // user) can trigger the bot. Without a server ID it is DM-only.
+        const guildId = payload.discordGuildId?.trim();
+        const userId = payload.discordUserId?.trim();
+        const guilds = guildId
+          ? {
+              [guildId]: {
+                requireMention: true,
+                ...(userId ? { users: [userId] } : {}),
+              },
+            }
+          : undefined;
         await configureChannel("discord", {
           enabled: true,
           token: payload.discordToken.trim(),
-          groupPolicy: "open",
+          groupPolicy: "allowlist",
           dmPolicy: "pairing",
+          guilds,
         });
       }
 

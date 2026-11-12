@@ -25,6 +25,8 @@
       cloudflareGatewayId: '',
       telegramToken: '',
       discordToken: '',
+      discordGuildId: '',
+      discordUserId: '',
       slackBotToken: '',
       slackAppToken: '',
       model: '',
@@ -150,6 +152,8 @@
           cloudflareGatewayId: this.cloudflareGatewayId,
           telegramToken: this.telegramToken,
           discordToken: this.discordToken,
+          discordGuildId: this.discordGuildId,
+          discordUserId: this.discordUserId,
           slackBotToken: this.slackBotToken,
           slackAppToken: this.slackAppToken
         };
@@ -781,6 +785,9 @@ openclaw models set anthropic/claude-sonnet-4-20250514</code></pre>
               </div>
               <input x-model="discordToken" type="password" placeholder="Bot token from Developer Portal" class="input" />
               <p class="form-hint">Enable <strong class="text-amber-strong">MESSAGE CONTENT INTENT</strong> in Bot → Privileged Gateway Intents</p>
+              <input x-model="discordGuildId" type="text" inputmode="numeric" placeholder="Server ID (optional)" class="input" style="margin-top:0.75rem" />
+              <input x-model="discordUserId" type="text" inputmode="numeric" placeholder="Your user ID (optional)" class="input" style="margin-top:0.75rem" />
+              <p class="form-hint">Only the server listed here can use the bot; without a server ID it answers in DMs only. Add your user ID to limit it to you. Copy IDs with Developer Mode on (right-click → Copy ID).</p>
             </div>
           </div>
 
