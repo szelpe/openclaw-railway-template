@@ -1185,6 +1185,28 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
         stream(`[models set] exit=${modelResult.code}\n`);
       }
 
+      // Since 2026.x, Discord and Slack are external plugins that are not
+      // bundled with the openclaw npm package; install them before configuring.
+      // Plugins land in the state dir (on the /data volume), so they persist.
+      async function installPlugin(id, spec) {
+        const inspect = await runCmd(
+          OPENCLAW_NODE,
+          clawArgs(["plugins", "inspect", id, "--json"]),
+        );
+        if (inspect.code === 0) {
+          stream(`\n[plugin ${id}] already installed, skipping\n`);
+          return;
+        }
+        stream(`\n[plugin ${id}] installing ${spec}...\n`);
+        const result = await runCmd(
+          OPENCLAW_NODE,
+          clawArgs(["plugins", "install", spec]),
+        );
+        stream(
+          `[plugin install ${spec}] exit=${result.code}\n${result.output || "(no output)"}\n`,
+        );
+      }
+
       async function configureChannel(name, cfgObj) {
         const set = await runCmd(
           OPENCLAW_NODE,
@@ -1217,6 +1239,7 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
       }
 
       if (payload.discordToken?.trim()) {
+        await installPlugin("discord", "@openclaw/discord");
         await configureChannel("discord", {
           enabled: true,
           token: payload.discordToken.trim(),
@@ -1226,6 +1249,7 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
       }
 
       if (payload.slackBotToken?.trim() || payload.slackAppToken?.trim()) {
+        await installPlugin("slack", "@openclaw/slack");
         await configureChannel("slack", {
           enabled: true,
           botToken: payload.slackBotToken?.trim() || undefined,
