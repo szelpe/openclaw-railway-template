@@ -1221,7 +1221,7 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
           enabled: true,
           token: payload.discordToken.trim(),
           groupPolicy: "open",
-          dm: { policy: "pairing" },
+          dmPolicy: "pairing",
         });
       }
 
